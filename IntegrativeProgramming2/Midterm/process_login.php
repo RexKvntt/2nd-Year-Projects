@@ -32,12 +32,12 @@ foreach ($data['users'] as &$user){
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'kentlawrencelagundino@gmail.com';
-            $mail->Password = 'jvpa iwxf tdxu yejs'; 
+            $mail->Username = 'sample@gmail.com';
+            $mail->Password = 'app_password'; 
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
-            $mail->setFrom('kentlawrencelagundino@gmail.com', 'Login Security');
+            $mail->setFrom('sample@gmail.com', 'Login Security');
             $mail->addAddress($user['email']);
 
             $mail->Subject = 'Your OTP Code';
@@ -65,5 +65,6 @@ foreach ($data['users'] as &$user){
 }
 
     echo "Invalid username and password!";
+
 
 ?>
