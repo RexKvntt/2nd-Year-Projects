@@ -33,8 +33,8 @@ foreach ($data['users'] as &$user){
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'kentlawrencelagundino@gmail.com';
-            $mail->Password = 'jvpa iwxf tdxu yejs'; 
+            $mail->Username = 'sample@gmail.com';
+            $mail->Password = 'password'; 
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
