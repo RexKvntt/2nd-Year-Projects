@@ -421,17 +421,40 @@ exit:
 
 ; -------- atoi --------
 atoi:
-    xor rax,rax
-.next:
-    mov bl,[rdi]
-    cmp bl,10
+    xor rax, rax        ; result = 0
+    xor rcx, rcx        ; sign flag = 0
+
+    mov bl, [rdi]
+    cmp bl, '-'
+    jne .convert
+    mov rcx, 1          ; mark as negative
+    inc rdi             ; skip '-'
+
+.convert:
+    mov bl, [rdi]
+    cmp bl, 10          ; newline
     je .done
-    sub bl,'0'
-    imul rax,rax,10
-    add rax,rbx
+    cmp bl, 0
+    je .done
+    cmp bl, '0'
+    jb .done
+    cmp bl, '9'
+    ja .done
+
+    imul rax, rax, 10
+    sub bl, '0'
+    movzx rbx, bl
+    add rax, rbx
+
     inc rdi
-    jmp .next
+    jmp .convert
+
 .done:
+    cmp rcx, 1
+    jne .return
+    neg rax             ; apply negative sign
+
+.return:
     ret
 
 ; -------- itoa --------
