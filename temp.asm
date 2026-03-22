@@ -1,11 +1,11 @@
 section .data
-    ask_scale db "Choose scale (F/C): "
+    ask_scale db "Choose scale to convert from (F or C): "
     ask_scale_len equ $ - ask_scale
 
-    ask_f db "Enter Fahrenheit: "
+    ask_f db "Enter Fahrenheit value: "
     ask_f_len equ $ - ask_f
 
-    ask_c db "Enter Celsius: "
+    ask_c db "Enter Celsius value: "
     ask_c_len equ $ - ask_c
 
     out_c db "Celsius: "
@@ -52,7 +52,7 @@ section .data
     f_critical db "Condition: Critical (very high fever).",10
     f_critical_len equ $ - f_critical
 
-    again_msg db "Again? (y/n): "
+    again_msg db "Convert again? (y/n): "
     again_len equ $ - again_msg
 
     newline db 10
