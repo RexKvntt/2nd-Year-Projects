@@ -268,31 +268,43 @@ fahrenheit_conditions:
 
 ; -------- Weather --------
 weather_conditions_c:
-    mov rax,r12
-    cmp rax,0
-    jl w_freezing_case
-    cmp rax,10
-    jle w_cold_case
-    cmp rax,20
-    jle w_cool_case
-    cmp rax,30
-    jle w_warm_case
-    cmp rax,35
-    jle w_hot_case
-    jmp w_danger_case
+    mov rax, r12
+
+    cmp rax, 0
+    jl w_freezing_case        ; < 0
+
+    cmp rax, 10
+    jle w_cold_case           ; 0–10
+
+    cmp rax, 20
+    jle w_cool_case           ; 11–20
+
+    cmp rax, 30
+    jle w_warm_case           ; 21–30
+
+    cmp rax, 37
+    jle w_hot_case            ; 31–37
+
+    jmp w_danger_case         ; 38+
 
 weather_conditions_f:
-    mov rax,r12
-    cmp rax,32
+    mov rax, r12
+
+    cmp rax, 32
     jl w_freezing_case
-    cmp rax,50
+
+    cmp rax, 50
     jle w_cold_case
-    cmp rax,68
+
+    cmp rax, 68
     jle w_cool_case
-    cmp rax,86
+
+    cmp rax, 86
     jle w_warm_case
-    cmp rax,95
+
+    cmp rax, 98
     jle w_hot_case
+
     jmp w_danger_case
 
 ; -------- Condition Outputs --------
