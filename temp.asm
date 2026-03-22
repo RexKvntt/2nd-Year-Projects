@@ -1,252 +1,299 @@
 section .data
-    ask_scale     db "Choose scale to convert from (F or C): "
+    ask_scale db "Choose scale (F/C): "
     ask_scale_len equ $ - ask_scale
 
-    ask_temp_f    db "Enter Fahrenheit value: "
-    ask_temp_f_len equ $ - ask_temp_f
+    ask_f db "Enter Fahrenheit: "
+    ask_f_len equ $ - ask_f
 
-    ask_temp_c    db "Enter Celsius value: "
-    ask_temp_c_len equ $ - ask_temp_c
+    ask_c db "Enter Celsius: "
+    ask_c_len equ $ - ask_c
 
-    out_f         db "Converted temperature in Fahrenheit: "
-    out_f_len     equ $ - out_f
+    out_c db "Celsius: "
+    out_c_len equ $ - out_c
 
-    out_c         db "Converted temperature in Celsius: "
-    out_c_len     equ $ - out_c
+    out_f db "Fahrenheit: "
+    out_f_len equ $ - out_f
 
-    invalid_msg   db "Invalid choice.", 10
-    invalid_len   equ $ - invalid_msg
+    ; Celsius condition messages
+    c_hypo db "Condition: Hypothermia (dangerously low).",10
+    c_hypo_len equ $ - c_hypo
 
-    newline       db 10
+    c_mildlow db "Condition: Below normal (possible mild hypothermia).",10
+    c_mildlow_len equ $ - c_mildlow
+
+    c_normal db "Condition: Normal and stable.",10
+    c_normal_len equ $ - c_normal
+
+    c_mildfever db "Condition: Mild fever (possible cold/infection).",10
+    c_mildfever_len equ $ - c_mildfever
+
+    c_highfever db "Condition: High fever.",10
+    c_highfever_len equ $ - c_highfever
+
+    c_critical db "Condition: Critical (hyperpyrexia).",10
+    c_critical_len equ $ - c_critical
+
+    ; Fahrenheit condition messages
+    f_hypo db "Condition: Hypothermia (dangerously low).",10
+    f_hypo_len equ $ - f_hypo
+
+    f_mildlow db "Condition: Below normal.",10
+    f_mildlow_len equ $ - f_mildlow
+
+    f_normal db "Condition: Normal and stable.",10
+    f_normal_len equ $ - f_normal
+
+    f_mildfever db "Condition: Mild fever.",10
+    f_mildfever_len equ $ - f_mildfever
+
+    f_highfever db "Condition: High fever.",10
+    f_highfever_len equ $ - f_highfever
+
+    f_critical db "Condition: Critical (very high fever).",10
+    f_critical_len equ $ - f_critical
+
+    again_msg db "Again? (y/n): "
+    again_len equ $ - again_msg
+
+    newline db 10
 
 section .bss
-    input   resb 32
-    numbuf  resb 32
+    input resb 32
+    numbuf resb 32
 
 section .text
     global _start
 
 _start:
-    ; Ask user for scale
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, ask_scale
-    mov rdx, ask_scale_len
+main_loop:
+
+    ; Ask scale
+    mov rax,1
+    mov rdi,1
+    mov rsi,ask_scale
+    mov rdx,ask_scale_len
     syscall
 
-    ; Read scale choice
-    mov rax, 0
-    mov rdi, 0
-    mov rsi, input
-    mov rdx, 32
+    ; Read input
+    mov rax,0
+    mov rdi,0
+    mov rsi,input
+    mov rdx,32
     syscall
 
-    mov al, [input]
+    mov al,[input]
 
-    cmp al, 'F'
-    je fahrenheit_to_celsius
-    cmp al, 'f'
-    je fahrenheit_to_celsius
+    cmp al,'F'
+    je f_to_c
+    cmp al,'f'
+    je f_to_c
+    cmp al,'C'
+    je c_to_f
+    cmp al,'c'
+    je c_to_f
 
-    cmp al, 'C'
-    je celsius_to_fahrenheit
-    cmp al, 'c'
-    je celsius_to_fahrenheit
+    jmp main_loop
 
-    ; Invalid choice
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, invalid_msg
-    mov rdx, invalid_len
-    syscall
-    jmp exit_program
-
-fahrenheit_to_celsius:
-    ; Ask for Fahrenheit value
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, ask_temp_f
-    mov rdx, ask_temp_f_len
+; ---------------- F → C ----------------
+f_to_c:
+    mov rax,1
+    mov rdi,1
+    mov rsi,ask_f
+    mov rdx,ask_f_len
     syscall
 
-    ; Read value
-    mov rax, 0
-    mov rdi, 0
-    mov rsi, input
-    mov rdx, 32
+    mov rax,0
+    mov rdi,0
+    mov rsi,input
+    mov rdx,32
     syscall
 
-    mov rdi, input
+    mov rdi,input
     call atoi
-    ; rax = Fahrenheit value
 
-    ; C = (F - 32) * 5 / 9
-    sub rax, 32
-    imul rax, rax, 5
+    ; C = (F-32)*5/9
+    sub rax,32
+    imul rax,rax,5
     cqo
-    mov rbx, 9
+    mov rbx,9
     idiv rbx
-    ; rax = Celsius result
 
-    mov rbx, rax
+    mov r12,rax
 
-    ; Print label
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, out_c
-    mov rdx, out_c_len
+    ; Print result
+    mov rax,1
+    mov rdi,1
+    mov rsi,out_c
+    mov rdx,out_c_len
     syscall
 
-    ; Print number
-    mov rax, rbx
+    mov rax,r12
     call itoa
-    ; rsi = pointer, rdx = length
-    mov rax, 1
-    mov rdi, 1
+    mov rax,1
+    mov rdi,1
     syscall
 
-    ; Print newline
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, newline
-    mov rdx, 1
+    mov rax,1
+    mov rdi,1
+    mov rsi,newline
+    mov rdx,1
     syscall
 
-    jmp exit_program
+    ; Condition (Celsius)
+    mov rax,r12
 
-celsius_to_fahrenheit:
-    ; Ask for Celsius value
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, ask_temp_c
-    mov rdx, ask_temp_c_len
+    cmp rax,35
+    jl c_hypo_case
+    cmp rax,36
+    jle c_mildlow_case
+    cmp rax,37
+    jle c_normal_case
+    cmp rax,38
+    jle c_mildfever_case
+    cmp rax,40
+    jle c_highfever_case
+    jmp c_critical_case
+
+; ---------------- C → F ----------------
+c_to_f:
+    mov rax,1
+    mov rdi,1
+    mov rsi,ask_c
+    mov rdx,ask_c_len
     syscall
 
-    ; Read value
-    mov rax, 0
-    mov rdi, 0
-    mov rsi, input
-    mov rdx, 32
+    mov rax,0
+    mov rdi,0
+    mov rsi,input
+    mov rdx,32
     syscall
 
-    mov rdi, input
+    mov rdi,input
     call atoi
-    ; rax = Celsius value
 
-    ; F = (C * 9 / 5) + 32
-    imul rax, rax, 9
+    ; F = (C*9/5)+32
+    imul rax,rax,9
     cqo
-    mov rbx, 5
+    mov rbx,5
     idiv rbx
-    add rax, 32
-    ; rax = Fahrenheit result
+    add rax,32
 
-    mov rbx, rax
+    mov r12,rax
 
-    ; Print label
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, out_f
-    mov rdx, out_f_len
+    ; Print result
+    mov rax,1
+    mov rdi,1
+    mov rsi,out_f
+    mov rdx,out_f_len
     syscall
 
-    ; Print number
-    mov rax, rbx
+    mov rax,r12
     call itoa
-    mov rax, 1
-    mov rdi, 1
+    mov rax,1
+    mov rdi,1
     syscall
 
-    ; Print newline
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, newline
-    mov rdx, 1
+    mov rax,1
+    mov rdi,1
+    mov rsi,newline
+    mov rdx,1
     syscall
 
-exit_program:
-    mov rax, 60
-    xor rdi, rdi
+    ; Condition (Fahrenheit)
+    mov rax,r12
+
+    cmp rax,95
+    jl f_hypo_case
+    cmp rax,97
+    jle f_mildlow_case
+    cmp rax,99
+    jle f_normal_case
+    cmp rax,101
+    jle f_mildfever_case
+    cmp rax,104
+    jle f_highfever_case
+    jmp f_critical_case
+
+; -------- Condition printing --------
+c_hypo_case:      mov rsi,c_hypo      mov rdx,c_hypo_len      jmp print_cond
+c_mildlow_case:   mov rsi,c_mildlow   mov rdx,c_mildlow_len   jmp print_cond
+c_normal_case:    mov rsi,c_normal    mov rdx,c_normal_len    jmp print_cond
+c_mildfever_case: mov rsi,c_mildfever mov rdx,c_mildfever_len jmp print_cond
+c_highfever_case: mov rsi,c_highfever mov rdx,c_highfever_len jmp print_cond
+c_critical_case:  mov rsi,c_critical  mov rdx,c_critical_len  jmp print_cond
+
+f_hypo_case:      mov rsi,f_hypo      mov rdx,f_hypo_len      jmp print_cond
+f_mildlow_case:   mov rsi,f_mildlow   mov rdx,f_mildlow_len   jmp print_cond
+f_normal_case:    mov rsi,f_normal    mov rdx,f_normal_len    jmp print_cond
+f_mildfever_case: mov rsi,f_mildfever mov rdx,f_mildfever_len jmp print_cond
+f_highfever_case: mov rsi,f_highfever mov rdx,f_highfever_len jmp print_cond
+f_critical_case:  mov rsi,f_critical  mov rdx,f_critical_len  jmp print_cond
+
+print_cond:
+    mov rax,1
+    mov rdi,1
+    syscall
+    jmp ask_again
+
+; -------- Repeat --------
+ask_again:
+    mov rax,1
+    mov rdi,1
+    mov rsi,again_msg
+    mov rdx,again_len
     syscall
 
-; ---------------------------
-; atoi: ASCII string -> integer
-; input:  rdi = pointer to string
-; output: rax = integer
-; ---------------------------
+    mov rax,0
+    mov rdi,0
+    mov rsi,input
+    mov rdx,32
+    syscall
+
+    mov al,[input]
+    cmp al,'y'
+    je main_loop
+    cmp al,'Y'
+    je main_loop
+
+    jmp exit
+
+exit:
+    mov rax,60
+    xor rdi,rdi
+    syscall
+
+; -------- atoi --------
 atoi:
-    xor rax, rax
-    xor r8, r8          ; sign flag = 0
-
-    cmp byte [rdi], '-'
-    jne .loop_start
-    mov r8, 1
-    inc rdi
-
-.loop_start:
-    mov bl, [rdi]
-    cmp bl, 10
+    xor rax,rax
+.next:
+    mov bl,[rdi]
+    cmp bl,10
     je .done
-    cmp bl, 0
-    je .done
-    cmp bl, '0'
-    jb .done
-    cmp bl, '9'
-    ja .done
-
-    imul rax, rax, 10
-    sub bl, '0'
-    movzx rbx, bl
-    add rax, rbx
-
+    sub bl,'0'
+    imul rax,rax,10
+    add rax,rbx
     inc rdi
-    jmp .loop_start
-
+    jmp .next
 .done:
-    cmp r8, 1
-    jne .return
-    neg rax
-
-.return:
     ret
 
-; ---------------------------
-; itoa: integer -> ASCII string
-; input:  rax = integer
-; output: rsi = pointer to string
-;         rdx = length
-; ---------------------------
+; -------- itoa --------
 itoa:
-    lea rdi, [numbuf + 31]
-    mov byte [rdi], 0
-    xor rcx, rcx
+    lea rdi,[numbuf+31]
+    mov byte[rdi],0
+    mov rcx,0
+    mov rbx,10
 
-    xor r8, r8          ; sign flag
-    cmp rax, 0
-    jge .convert
-    neg rax
-    mov r8, 1
-
-.convert:
-    mov rbx, 10
-
-.repeat:
-    xor rdx, rdx
+.conv:
+    xor rdx,rdx
     div rbx
-    add dl, '0'
+    add dl,'0'
     dec rdi
-    mov [rdi], dl
+    mov [rdi],dl
     inc rcx
-    test rax, rax
-    jnz .repeat
+    test rax,rax
+    jnz .conv
 
-    cmp r8, 1
-    jne .done
-    dec rdi
-    mov byte [rdi], '-'
-    inc rcx
-
-.done:
-    mov rsi, rdi
-    mov rdx, rcx
+    mov rsi,rdi
+    mov rdx,rcx
     ret
