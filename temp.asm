@@ -1,4 +1,7 @@
 section .data
+    mode_msg db "Select mode: [1] Regular [2] Human Body [3] Weather: "
+    mode_len equ $ - mode_msg
+
     ask_scale db "Choose scale to convert from (F or C): "
     ask_scale_len equ $ - ask_scale
 
@@ -52,6 +55,25 @@ section .data
     f_critical db "Condition: Critical (very high fever).",10
     f_critical_len equ $ - f_critical
 
+    ; Weather messages
+    w_freezing db "Weather: Freezing / below 0C.",10
+    w_freezing_len equ $ - w_freezing
+
+    w_cold db "Weather: Cold.",10
+    w_cold_len equ $ - w_cold
+
+    w_cool db "Weather: Cool.",10
+    w_cool_len equ $ - w_cool
+
+    w_warm db "Weather: Warm.",10
+    w_warm_len equ $ - w_warm
+
+    w_hot db "Weather: Hot.",10
+    w_hot_len equ $ - w_hot
+
+    w_danger db "Weather: Dangerously hot.",10
+    w_danger_len equ $ - w_danger
+
     again_msg db "Convert again? (y/n): "
     again_len equ $ - again_msg
 
@@ -60,12 +82,30 @@ section .data
 section .bss
     input resb 32
     numbuf resb 32
+    mode resb 1
 
 section .text
     global _start
 
 _start:
+
 main_loop:
+
+    ; Ask mode
+    mov rax,1
+    mov rdi,1
+    mov rsi,mode_msg
+    mov rdx,mode_len
+    syscall
+
+    mov rax,0
+    mov rdi,0
+    mov rsi,input
+    mov rdx,32
+    syscall
+
+    mov al,[input]
+    mov [mode],al
 
     ; Ask scale
     mov rax,1
@@ -74,7 +114,6 @@ main_loop:
     mov rdx,ask_scale_len
     syscall
 
-    ; Read input
     mov rax,0
     mov rdi,0
     mov rsi,input
@@ -94,7 +133,7 @@ main_loop:
 
     jmp main_loop
 
-; ---------------- F → C ----------------
+; -------- F → C --------
 f_to_c:
     mov rax,1
     mov rdi,1
@@ -111,7 +150,6 @@ f_to_c:
     mov rdi,input
     call atoi
 
-    ; C = (F-32)*5/9
     sub rax,32
     imul rax,rax,5
     cqo
@@ -120,7 +158,6 @@ f_to_c:
 
     mov r12,rax
 
-    ; Print result
     mov rax,1
     mov rdi,1
     mov rsi,out_c
@@ -139,22 +176,16 @@ f_to_c:
     mov rdx,1
     syscall
 
-    ; Condition (Celsius)
-    mov rax,r12
+    mov al,[mode]
+    cmp al,'1'
+    je ask_again
+    cmp al,'2'
+    je celsius_conditions
+    cmp al,'3'
+    je weather_conditions_c
+    jmp ask_again
 
-    cmp rax,35
-    jl c_hypo_case
-    cmp rax,36
-    jle c_mildlow_case
-    cmp rax,37
-    jle c_normal_case
-    cmp rax,38
-    jle c_mildfever_case
-    cmp rax,40
-    jle c_highfever_case
-    jmp c_critical_case
-
-; ---------------- C → F ----------------
+; -------- C → F --------
 c_to_f:
     mov rax,1
     mov rdi,1
@@ -171,7 +202,6 @@ c_to_f:
     mov rdi,input
     call atoi
 
-    ; F = (C*9/5)+32
     imul rax,rax,9
     cqo
     mov rbx,5
@@ -180,7 +210,6 @@ c_to_f:
 
     mov r12,rax
 
-    ; Print result
     mov rax,1
     mov rdi,1
     mov rsi,out_f
@@ -199,9 +228,32 @@ c_to_f:
     mov rdx,1
     syscall
 
-    ; Condition (Fahrenheit)
-    mov rax,r12
+    mov al,[mode]
+    cmp al,'1'
+    je ask_again
+    cmp al,'2'
+    je fahrenheit_conditions
+    cmp al,'3'
+    je weather_conditions_f
+    jmp ask_again
 
+; -------- Medical Conditions --------
+celsius_conditions:
+    mov rax,r12
+    cmp rax,35
+    jl c_hypo_case
+    cmp rax,36
+    jle c_mildlow_case
+    cmp rax,37
+    jle c_normal_case
+    cmp rax,38
+    jle c_mildfever_case
+    cmp rax,40
+    jle c_highfever_case
+    jmp c_critical_case
+
+fahrenheit_conditions:
+    mov rax,r12
     cmp rax,95
     jl f_hypo_case
     cmp rax,97
@@ -214,67 +266,125 @@ c_to_f:
     jle f_highfever_case
     jmp f_critical_case
 
-; -------- Condition printing --------
+; -------- Weather --------
+weather_conditions_c:
+    mov rax,r12
+    cmp rax,0
+    jl w_freezing_case
+    cmp rax,10
+    jle w_cold_case
+    cmp rax,20
+    jle w_cool_case
+    cmp rax,30
+    jle w_warm_case
+    cmp rax,35
+    jle w_hot_case
+    jmp w_danger_case
+
+weather_conditions_f:
+    mov rax,r12
+    cmp rax,32
+    jl w_freezing_case
+    cmp rax,50
+    jle w_cold_case
+    cmp rax,68
+    jle w_cool_case
+    cmp rax,86
+    jle w_warm_case
+    cmp rax,95
+    jle w_hot_case
+    jmp w_danger_case
+
+; -------- Condition Outputs --------
 c_hypo_case:
-mov rsi,c_hypo
-mov rdx,c_hypo_len
-jmp print_cond
+    mov rsi,c_hypo
+    mov rdx,c_hypo_len
+    jmp print_cond
 
 c_mildlow_case:
-mov rsi,c_mildlow
-mov rdx,c_mildlow_len
-jmp print_cond
+    mov rsi,c_mildlow
+    mov rdx,c_mildlow_len
+    jmp print_cond
 
 c_normal_case:
-mov rsi,c_normal
-mov rdx,c_normal_len
-jmp print_cond
+    mov rsi,c_normal
+    mov rdx,c_normal_len
+    jmp print_cond
 
 c_mildfever_case:
-mov rsi,c_mildfever
-mov rdx,c_mildfever_len
-jmp print_cond
+    mov rsi,c_mildfever
+    mov rdx,c_mildfever_len
+    jmp print_cond
 
 c_highfever_case:
-mov rsi,c_highfever
-mov rdx,c_highfever_len
-jmp print_cond
+    mov rsi,c_highfever
+    mov rdx,c_highfever_len
+    jmp print_cond
 
 c_critical_case:
-mov rsi,c_critical
-mov rdx,c_critical_len
-jmp print_cond
-
+    mov rsi,c_critical
+    mov rdx,c_critical_len
+    jmp print_cond
 
 f_hypo_case:
-mov rsi,f_hypo
-mov rdx,f_hypo_len
-jmp print_cond
+    mov rsi,f_hypo
+    mov rdx,f_hypo_len
+    jmp print_cond
 
 f_mildlow_case:
-mov rsi,f_mildlow
-mov rdx,f_mildlow_len
-jmp print_cond
+    mov rsi,f_mildlow
+    mov rdx,f_mildlow_len
+    jmp print_cond
 
 f_normal_case:
-mov rsi,f_normal
-mov rdx,f_normal_len
-jmp print_cond
+    mov rsi,f_normal
+    mov rdx,f_normal_len
+    jmp print_cond
 
-f_mildfever_case: 
-mov rsi,f_mildfever
-mov rdx,f_mildfever_len
-jmp print_cond
+f_mildfever_case:
+    mov rsi,f_mildfever
+    mov rdx,f_mildfever_len
+    jmp print_cond
 
 f_highfever_case:
-mov rsi,f_highfever
-mov rdx,f_highfever_len
-jmp print_cond
+    mov rsi,f_highfever
+    mov rdx,f_highfever_len
+    jmp print_cond
 
 f_critical_case:
-mov rsi,f_critical
-mov rdx,f_critical_len
-jmp print_cond
+    mov rsi,f_critical
+    mov rdx,f_critical_len
+    jmp print_cond
+
+w_freezing_case:
+    mov rsi,w_freezing
+    mov rdx,w_freezing_len
+    jmp print_cond
+
+w_cold_case:
+    mov rsi,w_cold
+    mov rdx,w_cold_len
+    jmp print_cond
+
+w_cool_case:
+    mov rsi,w_cool
+    mov rdx,w_cool_len
+    jmp print_cond
+
+w_warm_case:
+    mov rsi,w_warm
+    mov rdx,w_warm_len
+    jmp print_cond
+
+w_hot_case:
+    mov rsi,w_hot
+    mov rdx,w_hot_len
+    jmp print_cond
+
+w_danger_case:
+    mov rsi,w_danger
+    mov rdx,w_danger_len
+    jmp print_cond
 
 print_cond:
     mov rax,1
