@@ -215,19 +215,66 @@ c_to_f:
     jmp f_critical_case
 
 ; -------- Condition printing --------
-c_hypo_case:      mov rsi,c_hypo      mov rdx,c_hypo_len      jmp print_cond
-c_mildlow_case:   mov rsi,c_mildlow   mov rdx,c_mildlow_len   jmp print_cond
-c_normal_case:    mov rsi,c_normal    mov rdx,c_normal_len    jmp print_cond
-c_mildfever_case: mov rsi,c_mildfever mov rdx,c_mildfever_len jmp print_cond
-c_highfever_case: mov rsi,c_highfever mov rdx,c_highfever_len jmp print_cond
-c_critical_case:  mov rsi,c_critical  mov rdx,c_critical_len  jmp print_cond
+c_hypo_case:
+mov rsi,c_hypo
+mov rdx,c_hypo_len
+jmp print_cond
 
-f_hypo_case:      mov rsi,f_hypo      mov rdx,f_hypo_len      jmp print_cond
-f_mildlow_case:   mov rsi,f_mildlow   mov rdx,f_mildlow_len   jmp print_cond
-f_normal_case:    mov rsi,f_normal    mov rdx,f_normal_len    jmp print_cond
-f_mildfever_case: mov rsi,f_mildfever mov rdx,f_mildfever_len jmp print_cond
-f_highfever_case: mov rsi,f_highfever mov rdx,f_highfever_len jmp print_cond
-f_critical_case:  mov rsi,f_critical  mov rdx,f_critical_len  jmp print_cond
+c_mildlow_case:
+mov rsi,c_mildlow
+mov rdx,c_mildlow_len
+jmp print_cond
+
+c_normal_case:
+mov rsi,c_normal
+mov rdx,c_normal_len
+jmp print_cond
+
+c_mildfever_case:
+mov rsi,c_mildfever
+mov rdx,c_mildfever_len
+jmp print_cond
+
+c_highfever_case:
+mov rsi,c_highfever
+mov rdx,c_highfever_len
+jmp print_cond
+
+c_critical_case:
+mov rsi,c_critical
+mov rdx,c_critical_len
+jmp print_cond
+
+
+f_hypo_case:
+mov rsi,f_hypo
+mov rdx,f_hypo_len
+jmp print_cond
+
+f_mildlow_case:
+mov rsi,f_mildlow
+mov rdx,f_mildlow_len
+jmp print_cond
+
+f_normal_case:
+mov rsi,f_normal
+mov rdx,f_normal_len
+jmp print_cond
+
+f_mildfever_case: 
+mov rsi,f_mildfever
+mov rdx,f_mildfever_len
+jmp print_cond
+
+f_highfever_case:
+mov rsi,f_highfever
+mov rdx,f_highfever_len
+jmp print_cond
+
+f_critical_case:
+mov rsi,f_critical
+mov rdx,f_critical_len
+jmp print_cond
 
 print_cond:
     mov rax,1
