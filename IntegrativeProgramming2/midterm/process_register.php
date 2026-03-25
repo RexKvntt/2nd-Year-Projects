@@ -1,11 +1,16 @@
 <?php
 
+require 'cryptograph_process.php';
+
 $jsonData = file_get_contents("users.json");
 $data = json_decode($jsonData, true);
 
+$fullname = encryptData($_POST['fullname']);
+$phoneNumber = encryptData($_POST['phonenumber']);
+$civilStatus = encryptData($_POST['civilstatus']);
 $newUser = trim($_POST['username']);
 $newPassword = $_POST['password'];
-$newEmail = $_POST['email'];
+$newEmail = encryptData($_POST['email']);
 $confirmPassword = $_POST['confirm_password'];
 
 foreach ($data['users'] as $user){
@@ -33,6 +38,9 @@ if($newPassword !== $confirmPassword){
 $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
 $data['users'][] = [
+    'fullname' => $fullname,
+    'phonenumber' => $phoneNumber,
+    'civilstatus' => $civilStatus,
     'username' => $newUser,
     'email' => $newEmail,
     'password' => $hashedPassword,
