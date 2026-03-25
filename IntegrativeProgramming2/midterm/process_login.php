@@ -3,6 +3,7 @@
 session_start();
 
 require 'vendor/autoload.php';
+require 'cryptograph_process.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 
@@ -38,8 +39,8 @@ foreach ($data['users'] as &$user){
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
-            $mail->setFrom('kentlawrencelagundino@gmail.com', 'Login Security');
-            $mail->addAddress($user['email']);
+            $mail->setFrom('sample@gmail.com', 'Login Security');
+            $mail->addAddress(decryptData($user['email']));
 
             $mail->Subject = 'Your OTP Code';
             $mail->Body = "Your OTP code is: $otp. It is only valid for 5 minutes.";
