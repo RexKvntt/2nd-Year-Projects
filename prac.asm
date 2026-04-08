@@ -1,6 +1,18 @@
 section .data
-    prompt db "Enter score (0-100): "
-    prompt_len equ $ - prompt
+    prompt_name db "Enter name: "
+    prompt_name_len equ $ - prompt_name
+
+    prompt_score db "Enter score (0-100): "
+    prompt_score_len equ $ - prompt_score
+
+    label_name db "Name: "
+    label_name_len equ $ - label_name
+
+    label_score db "Score: "
+    label_score_len equ $ - label_score
+
+    label_remark db "Remarks: "
+    label_remark_len equ $ - label_remark
 
     excellent db "Excellent", 10
     excellent_len equ $ - excellent
@@ -11,80 +23,152 @@ section .data
     fail db "Fail", 10
     fail_len equ $ - fail
 
+    newline db 10
+
 section .bss
-    input resb 4        ; buffer for input
+    name resb 32
+    score_input resb 4
 
 section .text
     global _start
 
 _start:
 
-    ; print prompt
+; -------------------------
+; INPUT NAME
+; -------------------------
     mov rax, 1
     mov rdi, 1
-    mov rsi, prompt
-    mov rdx, prompt_len
+    mov rsi, prompt_name
+    mov rdx, prompt_name_len
     syscall
 
-    ; read input
     mov rax, 0
     mov rdi, 0
-    mov rsi, input
+    mov rsi, name
+    mov rdx, 32
+    syscall
+    mov r12, rax        ; store name length
+
+; -------------------------
+; INPUT SCORE
+; -------------------------
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, prompt_score
+    mov rdx, prompt_score_len
+    syscall
+
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, score_input
     mov rdx, 4
     syscall
 
-    ; convert ASCII to integer
-    mov rsi, input
+; -------------------------
+; CONVERT SCORE (ASCII → INT)
+; -------------------------
+    mov rsi, score_input
     xor rax, rax        ; result = 0
 
 convert:
     mov bl, [rsi]
-    cmp bl, 10          ; newline
+    cmp bl, 10
     je done_convert
 
     sub bl, '0'
     imul rax, rax, 10
+    movzx rbx, bl
     add rax, rbx
 
     inc rsi
     jmp convert
 
 done_convert:
+    mov r13, rax        ; store numeric score
 
-    ; rax now contains score
+; -------------------------
+; DETERMINE REMARK
+; -------------------------
+    cmp r13, 90
+    jge set_excellent
 
-    cmp rax, 90
-    jge print_excellent
+    cmp r13, 75
+    jge set_pass
 
-    cmp rax, 75
-    jge print_pass
+    jmp set_fail
 
-    jmp print_fail
+set_excellent:
+    mov r14, excellent
+    mov r15, excellent_len
+    jmp print_output
 
-print_excellent:
+set_pass:
+    mov r14, pass
+    mov r15, pass_len
+    jmp print_output
+
+set_fail:
+    mov r14, fail
+    mov r15, fail_len
+
+; -------------------------
+; OUTPUT RESULT
+; -------------------------
+print_output:
+
+    ; print "Name: "
     mov rax, 1
     mov rdi, 1
-    mov rsi, excellent
-    mov rdx, excellent_len
+    mov rsi, label_name
+    mov rdx, label_name_len
     syscall
-    jmp exit
 
-print_pass:
+    ; print name
     mov rax, 1
     mov rdi, 1
-    mov rsi, pass
-    mov rdx, pass_len
+    mov rsi, name
+    mov rdx, r12
     syscall
-    jmp exit
 
-print_fail:
+    ; print "Score: "
     mov rax, 1
     mov rdi, 1
-    mov rsi, fail
-    mov rdx, fail_len
+    mov rsi, label_score
+    mov rdx, label_score_len
     syscall
 
-exit:
+    ; NOTE: printing raw score input (string)
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, score_input
+    mov rdx, 4
+    syscall
+
+    ; print newline
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, newline
+    mov rdx, 1
+    syscall
+
+    ; print "Remarks: "
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, label_remark
+    mov rdx, label_remark_len
+    syscall
+
+    ; print remark
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, r14
+    mov rdx, r15
+    syscall
+
+; -------------------------
+; EXIT
+; -------------------------
     mov rax, 60
     xor rdi, rdi
     syscall
